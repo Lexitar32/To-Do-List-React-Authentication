@@ -29,11 +29,6 @@ export const ListBody = styled.div`
   padding: 1rem;
 `;
 
-export const List = styled.ul`
-  list-style: none;
-  padding: 1rem;
-`;
-
 export const ListItem = styled.li`
   padding: 1rem;
   display: flex;

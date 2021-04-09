@@ -7,7 +7,6 @@ import {
   Wrapper,
   Title,
   ListBody,
-  List,
   ListItem,
   Button,
 } from "./TodoListStyles";
