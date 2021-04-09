@@ -1,6 +1,7 @@
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import * as taskService from "../services/tasks";
 import {
   Body,
   Container,
@@ -17,46 +18,74 @@ function TodoList(props) {
   const [edit, setEdit] = useState({});
 
   useEffect(() => {
-    if (!localStorage.getItem("List")) localStorage.setItem("List", []);
-    const list = localStorage.getItem("List");
-    const parsedList = list.length > 0 ? JSON.parse(list) : list;
-    setList(parsedList);
+    const fetchTasks = async () => {
+      try {
+        const { data } = await taskService.getTasks();
+        setList(data);
+      } catch (error) {
+        if (error.response) toast.error(error.response.data);
+      }
+    };
+
+    fetchTasks();
   }, []);
 
-  const addTask = () => {
+  const addTask = async () => {
     if (!input) return toast.error("Please fill input!");
 
     const task = {
-      id: Date.now(),
       name: document.getElementById("taskInput").value,
     };
-    const newList = [...list];
-    newList.push(task);
-    localStorage.setItem("List", JSON.stringify(newList));
-    setList(newList);
 
-    setInput("");
+    try {
+      const { data } = await taskService.createTask(task);
+      delete data.__v;
+      const newList = [...list, data];
+      setList(newList);
+      setInput("");
+      toast.success("Task added successfully");
+    } catch (error) {
+      if (error.response) toast.error(error.response.data);
+    }
   };
 
-  const deleteTask = task => {
-    const newList = list.filter(item => item !== task);
-    localStorage.setItem("List", JSON.stringify(newList));
+  const deleteTask = async task => {
+    const originalList = [...list];
+    const newList = list.filter(item => item._id !== task._id);
     setList(newList);
+    try {
+      await taskService.deleteTask(task._id);
+      toast.warning("Task deleted successfully");
+    } catch (error) {
+      if (error.response) toast.error(error.response.data);
+      setList(originalList);
+    }
   };
 
   const editTask = task => {
+    document.getElementById("taskInput").focus();
     setInput(task.name);
     setEdit(task);
   };
 
-  const saveTask = () => {
-    const newList = [...list];
-    const index = list.findIndex(task => task.id === edit.id);
-    newList[index].name = input;
-    localStorage.setItem("List", JSON.stringify(newList));
+  const saveTask = async () => {
+    const originalList = [...list];
+    const editedInput = { _id: edit._id, name: input };
+    const newList = list.map(task =>
+      task._id === edit._id ? editedInput : task
+    );
+
     setList(newList);
     setInput("");
     setEdit({});
+
+    try {
+      await taskService.editTask(editedInput);
+      toast.success("Task edited successfully");
+    } catch (error) {
+      if (error.response) toast.error(error.response.data);
+      setList(originalList);
+    }
   };
 
   const handleInput = ({ currentTarget }) => {
@@ -123,7 +152,7 @@ function TodoList(props) {
             <ul className="list-group">
               {list &&
                 list.map(item => (
-                  <ListItem className="list-group-item" key={item.id}>
+                  <ListItem className="list-group-item" key={item._id}>
                     {item.name}
                     <div>
                       <Button onClick={() => editTask(item)}>
