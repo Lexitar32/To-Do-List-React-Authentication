@@ -1,12 +1,13 @@
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import * as taskService from "../services/tasks";
+import * as taskService from "../../services/tasks";
 import {
   Body,
   Container,
   Wrapper,
   Title,
+  PrimaryButton,
   ListBody,
   ListItem,
   Button,
@@ -30,7 +31,9 @@ function TodoList(props) {
     fetchTasks();
   }, []);
 
-  const addTask = async () => {
+  const addTask = async e => {
+    e.preventDefault();
+
     if (!input) return toast.error("Please fill input!");
 
     const task = {
@@ -55,7 +58,7 @@ function TodoList(props) {
     setList(newList);
     try {
       await taskService.deleteTask(task._id);
-      toast.warning("Task deleted successfully");
+      toast.success("Task deleted successfully");
     } catch (error) {
       if (error.response) toast.error(error.response.data);
       setList(originalList);
@@ -98,14 +101,28 @@ function TodoList(props) {
     setEdit({});
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location = "/login";
+  };
+
   return (
     <Body>
       <Container>
         <Wrapper>
+          <div className="d-flex align-items-center justify-content-end">
+            <PrimaryButton
+              className="btn btn-primary"
+              type="button"
+              onClick={handleLogout}
+            >
+              Logout
+            </PrimaryButton>
+          </div>
           <Title>TODO LIST</Title>
           <ListBody>
             <div>
-              <div className="input-group mb-3">
+              <form className="input-group mb-3" onSubmit={addTask}>
                 <input
                   type="text"
                   className="form-control"
@@ -116,25 +133,21 @@ function TodoList(props) {
                 ></input>
                 {_.isEmpty(edit) && (
                   <div className="input-group-append">
-                    <button
-                      className="btn btn-primary"
-                      type="button"
-                      onClick={() => addTask()}
-                    >
+                    <PrimaryButton className="btn btn-primary" type="submit">
                       New Task
-                    </button>
+                    </PrimaryButton>
                   </div>
                 )}
                 {!_.isEmpty(edit) && (
                   <React.Fragment>
                     <div className="input-group-append">
-                      <button
+                      <PrimaryButton
                         className="btn btn-primary"
                         type="button"
                         onClick={() => saveTask(list)}
                       >
                         Save
-                      </button>
+                      </PrimaryButton>
                     </div>
                     <div className="input-group-append">
                       <button
@@ -147,11 +160,11 @@ function TodoList(props) {
                     </div>
                   </React.Fragment>
                 )}
-              </div>
+              </form>
             </div>
             <ul className="list-group">
               {list &&
-                list.map(item => (
+                [...list].reverse().map(item => (
                   <ListItem className="list-group-item" key={item._id}>
                     {item.name}
                     <div>
