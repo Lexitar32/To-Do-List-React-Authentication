@@ -25,7 +25,7 @@ function Home(props) {
     try {
       const { headers } = await http.post("/users", user);
       localStorage.setItem("token", headers["x-auth-token"]);
-      window.location = "/todo-list";
+      window.location = "/todolist";
     } catch (error) {
       if (error.response) setError(error.response.data);
     }

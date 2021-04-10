@@ -25,7 +25,7 @@ function Login(props) {
     try {
       const { data: token } = await http.post("/users/login", user);
       localStorage.setItem("token", token);
-      window.location = "/todo-list";
+      window.location = "/todolist";
     } catch (error) {
       if (error.response) setError(error.response.data);
     }

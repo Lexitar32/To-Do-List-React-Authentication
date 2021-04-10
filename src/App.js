@@ -11,7 +11,7 @@ function App() {
     <React.Fragment>
       <ToastContainer />
       <Switch>
-        <Route path="/todo-list" component={TodoList} />
+        <Route path="/todolist" component={TodoList} />
         <Route path="/login" component={Login} />
         <Route path="/" exact component={Home} />
       </Switch>
